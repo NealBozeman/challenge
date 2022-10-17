@@ -9,6 +9,9 @@ const knex = require('knex')({
 	useNullAsDefault: true
 })
 
+// Compile the contact schema
+ajv.addSchema(require('./schemas/contact.json'), 'contact')
+
 
 // knex: if contacts table does not exist, create it
 knex.schema.hasTable('contacts').then(function(exists) {
@@ -20,3 +23,12 @@ knex.schema.hasTable('contacts').then(function(exists) {
 	}
 });
 
+
+// start fastify on port 3030
+fastify.listen(3030, function (err, address) {
+	if (err) {
+		fastify.log.error(err)
+		process.exit(1)
+	}
+	fastify.log.info(`server listening on ${address}`)
+})
