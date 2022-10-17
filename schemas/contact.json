@@ -1,0 +1,169 @@
+{
+		"definitions": {},
+		"$schema": "http://json-schema.org/draft-07/schema#", 
+		"$id": "https://example.com/object1665994355.json", 
+		"title": "Root", 
+		"type": "object",
+		"required": [
+			"name",
+			"address",
+			"phone",
+			"email"
+		],
+		"properties": {
+			"id": {
+				"$id": "#root/id", 
+				"title": "Id", 
+				"type": "integer",
+				"examples": [
+					1
+				]
+									},
+			"name": {
+				"$id": "#root/name", 
+				"title": "Name", 
+				"type": "object",
+				"required": [
+					"first",
+					"middle",
+					"last"
+				],
+				"properties": {
+					"first": {
+						"$id": "#root/name/first", 
+						"title": "First", 
+						"type": "string",
+						"default": "",
+						"examples": [
+							"Harold"
+						],
+						"pattern": "^.*$"
+					},
+					"middle": {
+						"$id": "#root/name/middle", 
+						"title": "Middle", 
+						"type": "string",
+						"default": "",
+						"examples": [
+							"Francis"
+						],
+						"pattern": "^.*$"
+					},
+					"last": {
+						"$id": "#root/name/last", 
+						"title": "Last", 
+						"type": "string",
+						"default": "",
+						"examples": [
+							"Gilkey"
+						],
+						"pattern": "^.*$"
+					}
+				}
+			}
+	,
+			"address": {
+				"$id": "#root/address", 
+				"title": "Address", 
+				"type": "object",
+				"required": [
+					"street",
+					"city",
+					"state",
+					"zip"
+				],
+				"properties": {
+					"street": {
+						"$id": "#root/address/street", 
+						"title": "Street", 
+						"type": "string",
+						"default": "",
+						"examples": [
+							"8360 High Autumn Row"
+						],
+						"pattern": "^.*$"
+					},
+					"city": {
+						"$id": "#root/address/city", 
+						"title": "City", 
+						"type": "string",
+						"default": "",
+						"examples": [
+							"Cannon"
+						],
+						"pattern": "^.*$"
+					},
+					"state": {
+						"$id": "#root/address/state", 
+						"title": "State", 
+						"type": "string",
+						"default": "",
+						"examples": [
+							"Delaware"
+						],
+						"pattern": "^.*$"
+					},
+					"zip": {
+						"$id": "#root/address/zip", 
+						"title": "Zip", 
+						"type": "string",
+						"default": "",
+						"examples": [
+							"19797"
+						],
+						"pattern": "^.*$"
+					}
+				}
+			}
+	,
+			"phone": {
+				"$id": "#root/phone", 
+				"title": "Phone", 
+				"type": "array",
+				"default": [],
+				"items":{
+					"$id": "#root/phone/items", 
+					"title": "Items", 
+					"type": "object",
+					"required": [
+						"number",
+						"type"
+					],
+					"properties": {
+						"number": {
+							"$id": "#root/phone/items/number", 
+							"title": "Number", 
+							"type": "string",
+							"default": "",
+							"examples": [
+								"302-611-9148"
+							],
+							"pattern": "^.*$"
+						},
+						"type": {
+							"$id": "#root/phone/items/type", 
+							"title": "Type", 
+							"type": "string",
+							"default": "",
+							"examples": [
+								"home"
+							],
+							"pattern": "^.*$"
+						}
+					}
+				}
+	
+			},
+			"email": {
+				"$id": "#root/email", 
+				"title": "Email", 
+				"type": "string",
+				"default": "",
+				"examples": [
+					"harold.gilkey@yahoo.com"
+				],
+				"pattern": "^.*$"
+			}
+		}
+
+}
