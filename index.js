@@ -9,3 +9,14 @@ const knex = require('knex')({
 	useNullAsDefault: true
 })
 
+
+// knex: if contacts table does not exist, create it
+knex.schema.hasTable('contacts').then(function(exists) {
+	if (!exists) {
+		return knex.schema.createTable('contacts', function(t) {
+			t.increments('id').primary();
+			t.json('obj');
+		});
+	}
+});
+
