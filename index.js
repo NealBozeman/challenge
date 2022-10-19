@@ -9,6 +9,10 @@ const knex = require('knex')({
 	},
 	useNullAsDefault: true
 })
+const ApiWhitelist = [
+	"contacts",
+	"call-list"
+]
 
 // Compile the contact schema
 var Validators = {}
@@ -29,7 +33,7 @@ knex.schema.hasTable('contacts').then(function (exists) {
 
 
 // start fastify on port 3030
-fastify.listen({ port: 3030 }, function (err, address) {
+fastify.listen({ port: 3030, host: '0.0.0.0' }, function (err, address) {
 	if (err) {
 		console.log(err)
 		process.exit(1)
@@ -46,6 +50,9 @@ fastify.route({
 	method: ['POST', 'GET', 'PUT', 'DELETE'],
 	handler: async (req, res) => {
 		try {
+			// if "type" is not in ApiWhitelist, then return 404
+			if (!ApiWhitelist.includes(req.params.type)) { return res.code(404).send() }			
+			
 			let record
 
 			// check to see if a special handler exists for this request
@@ -190,8 +197,11 @@ async function testFastifyRoute(opt) {
 var testMust = {}
 testMust.return200 = [`res.statusCode === 200`]
 testMust.notReturn200 = [`res.statusCode !== 200`]
+testMust.return404 = [`res.statusCode === 404`]
+
 
 var toTest = [
+	{ desc: 'Request URL not in ApiWhitelist', tests: testMust.return404, method: 'GET', url: '/api/v1/credit-cards' },
 	{ desc: 'Post an invalid record', tests: testMust.notReturn200, method: 'POST', url: '/api/v1/contacts', payload: { name: 'test', email: 'nealtest' } },
 	{
 		desc: 'Post a valid record', tests: testMust.return200, method: 'POST', url: '/api/v1/contacts', payload: testContact,
