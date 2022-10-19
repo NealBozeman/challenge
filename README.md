@@ -6,11 +6,11 @@ A playground demo is available at:
 List of issues & considerations:
 [Git Issues](https://github.com/NealBozeman/challenge/issues)
 
-[Repo](https://github.com/NealBozeman/challenge)
+Source code: [GitHub Repo](https://github.com/NealBozeman/challenge)
 
 ### Objective
 
-Write an api in NodeJS that allows a client to POST, PUT, GET, and DELETE "contacts" in a database. Original specs here: [NodeJS Challenge Spec](./challenge.docx)
+Write an api in NodeJS that allows a client to POST, PUT, GET, and DELETE "contacts" in a database. Original specs here: [NodeJS Challenge Spec](./challenge.docx?raw=true)
 
 ### Setup
 
@@ -20,6 +20,8 @@ npm i
 ```
 
 By default, the app will run on port 3030.
+
+Bulk load is available at ```/api/v1/load-test-contacts-in-bulk```
 
 ## Tests
 
