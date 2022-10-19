@@ -2,7 +2,7 @@ const fastify = require('fastify')()
 const Ajv = require('ajv')
 const ajv = new Ajv({ removeAdditional: true })
 const merge = require('lodash.merge')
-const FastifyPrettier	= require('fastify-prettier')
+const FastifyPrettier = require('fastify-prettier')
 const knex = require('knex')({
 	client: 'sqlite3',
 	connection: {
@@ -56,15 +56,14 @@ fastify.listen({ port: 3030, host: '0.0.0.0' }, function (err, address) {
 
 
 // add a generic fastify route for /api/v1/{type}/{id} with id optional
-// todo SECURITY #
 fastify.route({
 	path: '/api/v1/:type/:id?',
 	method: ['POST', 'GET', 'PUT', 'DELETE'],
 	handler: async (req, res) => {
 		try {
 			// if "type" is not in ApiWhitelist, then return 404
-			if (!ApiWhitelist.includes(req.params.type)) { return res.code(404).send() }			
-			
+			if (!ApiWhitelist.includes(req.params.type)) { return res.code(404).send() }
+
 			let record
 
 			// check to see if a special handler exists for this request
@@ -119,8 +118,8 @@ fastify.route({
 							record = new GenericRecord(req.params.type)
 							await record.load(req.params.id)
 							let status = await record.delete()
-							res.send({ status }) 
-							}
+							res.send({ status })
+						}
 				}
 			}
 		} catch (error) {
@@ -133,26 +132,22 @@ fastify.route({
 // make a collection of overrides for the routes
 // format: "api-[method]-[override]"
 var overrides = {
-	'api-get-call-list': async function (req, res) { 
+	'api-get-call-list': async function (req, res) {
 
 		// The call list is generated from all contacts that include a home phone.  
-	// It is sorted first by the contact’s last name, then by first name, 
-	// and returned as an array of objects that each have the following JSON format:
-	// {  "name": {    "first": "Harold",    "middle": "Francis",    "last": "Gilkey"},  "phone": "302-611-9148"}
-
-		//let records = await knex().fromRaw('contacts, JSON_EACH(obj, "$.phone")').jsonExtract( [ [ 'obj', '$.name', 'name'], ['obj', '$.phone', 'phone' ] ] )
-		//.whereRaw("JSON_EXTRACT(obj, '$.phone[0].type') = 'home'").orderByRaw(`obj->"$.name.last" asc, obj->"$.name.first" asc`)
+		// It is sorted first by the contact’s last name, then by first name, 
+		// and returned as an array of objects that each have the following JSON format:
+		// {  "name": {    "first": "Harold",    "middle": "Francis",    "last": "Gilkey"},  "phone": "302-611-9148"}
 		let records = await knex.raw('select DISTINCT JSON_EXTRACT(c.obj, "$.name") as name, JSON_EXTRACT(r.value, "$.number") as phone from contacts c join JSON_EACH(obj, "$.phone") r where JSON_EXTRACT(r.value, "$.type") = "home" order by JSON_EXTRACT(obj, "$.name.last") asc, JSON_EXTRACT(obj, "$.name.first") asc')
-		// send	the records to the client
 		res.send(records)
 	},
-	'api-get-load-test-contacts-in-bulk': async function (req, res) { 
+	'api-get-load-test-contacts-in-bulk': async function (req, res) {
 		// bulk import contacts
-		bulkContacts.forEach( async (contact) => { 
+		bulkContacts.forEach(async (contact) => {
 			await fastify.inject({ method: 'POST', url: '/api/v1/contacts', payload: contact })
 		})
 		res.send({ message: 'Ok! Bulk loaded contacts into DB' })
-}
+	}
 }
 
 
@@ -162,12 +157,12 @@ function GenericRecord(type, init = {}) {
 	this.type = type
 
 	this.set = function (obj) {
-	Object.assign(this, merge(this, obj) )
+		Object.assign(this, merge(this, obj))
 		return this
 	}
 
 	this.load = async function (id) {
-		if(!id) throw new Error('id is missing')
+		if (!id) throw new Error('id is missing')
 		let record = await knex(this.type).where('id', id).first()
 		if (!record) throw new Error('record not found by id ' + id)
 		this.id = record.id
@@ -210,7 +205,7 @@ var failedTests = 0
 var lastRes = {}
 
 async function testFastifyRoute(opt) {
-	 return fastify.inject(opt).then((res) => {
+	return fastify.inject(opt).then((res) => {
 		opt.tests ??= []
 		console.log('🍈', opt.desc)
 		opt.tests.forEach((test) => {
