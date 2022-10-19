@@ -37,17 +37,17 @@ If running in dev environment, we will run a set of integrated tests at startup 
 
 - Uses AJV to validate the JSON objects before storing or serving the objects.
 
-- Allow overrides for specific custom routes, e.g. /api/getContactList
+- Allow overrides for specific custom routes, e.g. /api/call-list
 
 *Security*
 
-- Uses an API request white list to avoid data being stolen from database tables that aren't meant to be exposed.
+- Uses an API request whitelist to avoid data being stolen from database tables that aren't meant to be exposed.
 
-- Using numeric ID can reveal information about a service, such as how popular it is, or allow attackers to guess record numbers. Also, incremental numeric IDs prevent efficient multi-write sharding, and mult-region backends, as all nodes have to first agree on the record number. 
+- NOTICE: Using numeric IDs as specified can reveal information about a service, such as how popular it is, or allow attackers to guess record numbers of other users. Also, incremental numeric IDs prevent efficient multi-write sharding, and mult-region backends, as all nodes have to first lock writes and agree on the next record number. 
 
 * I suggest using a UUIDv4 instead of numeric. This allows us to specify the id as a string, and does not reveal any practical information to an attacker.
 
-- We will not be determining is a token or user is authenticated, but can do so in the future on each request using middleware. 
+- We will not be determining if a token or user is authenticated, but can do so in the future on each request using middleware. 
 
 *Libraries*
 
