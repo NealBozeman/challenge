@@ -3,6 +3,7 @@
     "ajv": "^8.11.0",
     "deepmerge": "^4.2.2",
     "fastify": "^4.8.1",
+    "fastify-prettier": "^2.0.0",
     "knex": "^2.3.0",
     "lodash": "^4.17.21",
     "lodash.merge": "^4.6.2",

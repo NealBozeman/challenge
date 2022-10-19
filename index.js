@@ -2,6 +2,7 @@ const fastify = require('fastify')()
 const Ajv = require('ajv')
 const ajv = new Ajv({ removeAdditional: true })
 const merge = require('lodash.merge')
+const FastifyPrettier	= require('fastify-prettier')
 const knex = require('knex')({
 	client: 'sqlite3',
 	connection: {
@@ -11,7 +12,8 @@ const knex = require('knex')({
 })
 const ApiWhitelist = [
 	"contacts",
-	"call-list"
+	"call-list",
+	"load-test-contacts-in-bulk",
 ]
 
 // Compile the contact schema
@@ -19,7 +21,16 @@ var Validators = {}
 Validators.contacts = ajv.compile(require('./schemas/contact.json'))
 
 const testContact = { "name": { "first": "Harold", "middle": "Francis", "last": "Gilkey" }, "address": { "street": "8360 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "302-611-9148", "type": "home" }, { "number": "302-532-9427", "type": "mobile" }], "email": "harold.gilkey@yahoo.com" }
-
+const bulkContacts = [
+	{ "name": { "first": "Alfred", "middle": "G", "last": "Likely" }, "address": { "street": "8360 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "302-611-9148", "type": "home" }, { "number": "302-132-9427", "type": "mobile" }], "email": "	" },
+	{ "name": { "first": "Samantha", "middle": "", "last": "Harris" }, "address": { "street": "8360 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "302-611-9148", "type": "home" }, { "number": "302-532-3123", "type": "mobile" }], "email": " " },
+	{ "name": { "first": "Zachary", "middle": "Francis", "last": "Plainlittle" }, "address": { "street": "8360 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "302-611-2342", "type": "home" }, { "number": "302-123-9427", "type": "mobile" }], "email": " " },
+	{ "name": { "first": "Isa", "middle": " ", "last": "Gutierrez" }, "address": { "street": "8360 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "302-234-9148", "type": "home" }, { "number": "302-231-9427", "type": "mobile" }], "email": " " },
+	{ "name": { "first": "Vlad", "middle": "", "last": "Rostovsky" }, "address": { "street": "123 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "321-611-9148", "type": "home" }, { "number": "302-532-3123", "type": "mobile" }], "email": " " },
+	{ "name": { "first": "Anilio", "middle": "", "last": "Rostovsky" }, "address": { "street": "123 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "321-611-9148", "type": "home" }, { "number": "302-532-3123", "type": "mobile" }], "email": " " },
+	{ "name": { "first": "Roxana", "middle": "", "last": "Rostovsky" }, "address": { "street": "123 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "321-611-9148", "type": "home" }, { "number": "302-532-3123", "type": "mobile" }], "email": " " },
+	{ "name": { "first": "Olga", "middle": "", "last": "Rostovsky" }, "address": { "street": "123 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "321-611-9148", "type": "home" }, { "number": "302-532-3123", "type": "mobile" }], "email": " " },
+]
 
 // knex: if contacts table does not exist, create it
 knex.schema.hasTable('contacts').then(function (exists) {
@@ -33,6 +44,7 @@ knex.schema.hasTable('contacts').then(function (exists) {
 
 
 // start fastify on port 3030
+fastify.register(FastifyPrettier, { alwaysOn: true })
 fastify.listen({ port: 3030, host: '0.0.0.0' }, function (err, address) {
 	if (err) {
 		console.log(err)
@@ -58,7 +70,8 @@ fastify.route({
 			// check to see if a special handler exists for this request
 			let overrideFunc = `api-${req.method.toLowerCase()}-${req.params.type}`
 			if (typeof overrides[overrideFunc] === 'function') {
-				overrides[overrideFunc](req, res)
+				await overrides[overrideFunc](req, res)
+				return
 			} else {
 
 				//	no special handler, so use the generic handler
@@ -120,7 +133,26 @@ fastify.route({
 // make a collection of overrides for the routes
 // format: "api-[method]-[override]"
 var overrides = {
-	'api-get-call-list': async function (req, res) { return {} },
+	'api-get-call-list': async function (req, res) { 
+
+		// The call list is generated from all contacts that include a home phone.  
+	// It is sorted first by the contact’s last name, then by first name, 
+	// and returned as an array of objects that each have the following JSON format:
+	// {  "name": {    "first": "Harold",    "middle": "Francis",    "last": "Gilkey"},  "phone": "302-611-9148"}
+
+		//let records = await knex().fromRaw('contacts, JSON_EACH(obj, "$.phone")').jsonExtract( [ [ 'obj', '$.name', 'name'], ['obj', '$.phone', 'phone' ] ] )
+		//.whereRaw("JSON_EXTRACT(obj, '$.phone[0].type') = 'home'").orderByRaw(`obj->"$.name.last" asc, obj->"$.name.first" asc`)
+		let records = await knex.raw('select DISTINCT JSON_EXTRACT(c.obj, "$.name") as name, JSON_EXTRACT(r.value, "$.number") as phone from contacts c join JSON_EACH(obj, "$.phone") r where JSON_EXTRACT(r.value, "$.type") = "home" order by JSON_EXTRACT(obj, "$.name.last") asc, JSON_EXTRACT(obj, "$.name.first") asc')
+		// send	the records to the client
+		res.send(records)
+	},
+	'api-get-load-test-contacts-in-bulk': async function (req, res) { 
+		// bulk import contacts
+		bulkContacts.forEach( async (contact) => { 
+			await fastify.inject({ method: 'POST', url: '/api/v1/contacts', payload: contact })
+		})
+		res.send({ message: 'Ok! Bulk loaded contacts into DB' })
+}
 }
 
 
@@ -208,7 +240,7 @@ var toTest = [
 		cb: (body) => {
 			toTest.unshift(
 				{ desc: 'Get last record with ID', tests: testMust.return200, method: 'GET', url: `/api/v1/contacts/${body.id}` },
-				{ desc: 'Update last record with ID', tests: testMust.return200, method: 'PUT', url: `/api/v1/contacts/${body.id}`, payload: { name: { first: "bobby update test" } } },
+				{ desc: 'Update last record with ID', tests: testMust.return200, method: 'PUT', url: `/api/v1/contacts/${body.id}`, payload: { name: { first: "bobby PUT test" } } },
 				{ desc: 'Delete last record with ID', tests: testMust.return200, method: 'GET', url: `/api/v1/contacts/${body.id}` },
 			)
 		}
