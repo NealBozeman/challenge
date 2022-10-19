@@ -14,6 +14,7 @@ const ApiWhitelist = [
 	"contacts",
 	"call-list",
 	"load-test-contacts-in-bulk",
+	"setup"
 ]
 
 // Compile the contact schema
@@ -31,16 +32,6 @@ const bulkContacts = [
 	{ "name": { "first": "Roxana", "middle": "", "last": "Rostovsky" }, "address": { "street": "123 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "321-611-9148", "type": "home" }, { "number": "302-532-3123", "type": "mobile" }], "email": " " },
 	{ "name": { "first": "Olga", "middle": "", "last": "Rostovsky" }, "address": { "street": "123 High Autumn Row", "city": "Cannon", "state": "Delaware", "zip": "19797" }, "phone": [{ "number": "321-611-9148", "type": "home" }, { "number": "302-532-3123", "type": "mobile" }], "email": " " },
 ]
-
-// knex: if contacts table does not exist, create it
-knex.schema.hasTable('contacts').then(function (exists) {
-	if (!exists) {
-		return knex.schema.createTable('contacts', function (t) {
-			t.increments('id').primary();
-			t.json('obj');
-		});
-	}
-});
 
 
 // start fastify on port 3030
@@ -146,9 +137,21 @@ var overrides = {
 		bulkContacts.forEach(async (contact) => {
 			await fastify.inject({ method: 'POST', url: '/api/v1/contacts', payload: contact })
 		})
-		res.send({ message: 'Ok! Bulk loaded contacts into DB' })
+		res.send({ message: 'Ok! Bulk loaded some contacts.' })
+	},
+	'api-get-setup': async function (req, res) {
+		// knex: if contacts table does not exist, create it
+		let exists = await knex.schema.hasTable('contacts')
+		if (!exists) {
+			await knex.schema.createTable('contacts', function (t) {
+				t.increments('id').primary();
+				t.json('obj');
+			})
+		}
+		res.send({ message: 'Ok! DB is ready' })
 	}
 }
+
 
 
 // add a generic object to manipulate the database
@@ -228,6 +231,7 @@ testMust.return404 = [`res.statusCode === 404`]
 
 
 var toTest = [
+	{ desc: 'Check database setup', tests: testMust.return200, method: 'GET', url: '/api/v1/setup' },
 	{ desc: 'Request URL not in ApiWhitelist', tests: testMust.return404, method: 'GET', url: '/api/v1/credit-cards' },
 	{ desc: 'Post an invalid record', tests: testMust.notReturn200, method: 'POST', url: '/api/v1/contacts', payload: { name: 'test', email: 'nealtest' } },
 	{
