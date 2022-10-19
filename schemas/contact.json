@@ -25,7 +25,6 @@
 				"type": "object",
 				"required": [
 					"first",
-					"middle",
 					"last"
 				],
 				"properties": {
