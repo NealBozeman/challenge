@@ -182,8 +182,6 @@ function GenericRecord(type, init = {}) {
 				this.id = record[0]
 			}
 		}
-
-		this.set(init)
 	}
 
 	this.delete = async function (id) {
