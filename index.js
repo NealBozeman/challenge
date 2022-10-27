@@ -1,6 +1,6 @@
 const fastify = require('fastify')()
 const Ajv = require('ajv')
-const ajv = new Ajv({ removeAdditional: true })
+const ajv = new Ajv({ removeAdditional: "all" })
 const merge = require('lodash.merge')
 const FastifyPrettier = require('fastify-prettier')
 const knex = require('knex')({
